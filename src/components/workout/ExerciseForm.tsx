@@ -1,10 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Exercise } from '@/types/workout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, X, Image, Video, Link } from 'lucide-react';
+import { Plus, X, Image, Video, Link, Upload } from 'lucide-react';
 
 interface ExerciseFormProps {
   onAdd: (exercise: Omit<Exercise, 'id' | 'completed' | 'currentSet'>) => void;
@@ -18,6 +18,8 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
   const [restTime, setRestTime] = useState(60);
   const [mediaUrl, setMediaUrl] = useState('');
   const [mediaType, setMediaType] = useState<'image' | 'gif' | 'youtube'>('image');
+  const [mediaSource, setMediaSource] = useState<'url' | 'file'>('url');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +43,24 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
     } else {
       setMediaType('image');
     }
+  };
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64 = reader.result as string;
+      setMediaUrl(base64);
+      
+      if (file.type === 'image/gif') {
+        setMediaType('gif');
+      } else {
+        setMediaType('image');
+      }
+    };
+    reader.readAsDataURL(file);
   };
 
   return (
@@ -95,46 +115,117 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="media">Mídia (opcional)</Label>
-            <Input
-              id="media"
-              placeholder="URL da imagem, GIF ou YouTube"
-              value={mediaUrl}
-              onChange={(e) => {
-                setMediaUrl(e.target.value);
-                detectMediaType(e.target.value);
-              }}
-              className="bg-secondary border-border"
-            />
-            <div className="flex gap-2 mt-2">
+            <Label>Mídia (opcional)</Label>
+            
+            {/* Toggle between URL and File upload */}
+            <div className="flex gap-2 mb-2">
               <Button
                 type="button"
                 size="sm"
-                variant={mediaType === 'image' ? 'default' : 'secondary'}
-                onClick={() => setMediaType('image')}
-              >
-                <Image className="h-4 w-4 mr-1" />
-                Imagem
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                variant={mediaType === 'gif' ? 'default' : 'secondary'}
-                onClick={() => setMediaType('gif')}
+                variant={mediaSource === 'url' ? 'default' : 'secondary'}
+                onClick={() => {
+                  setMediaSource('url');
+                  setMediaUrl('');
+                }}
               >
                 <Link className="h-4 w-4 mr-1" />
-                GIF
+                URL
               </Button>
               <Button
                 type="button"
                 size="sm"
-                variant={mediaType === 'youtube' ? 'default' : 'secondary'}
-                onClick={() => setMediaType('youtube')}
+                variant={mediaSource === 'file' ? 'default' : 'secondary'}
+                onClick={() => {
+                  setMediaSource('file');
+                  setMediaUrl('');
+                }}
               >
-                <Video className="h-4 w-4 mr-1" />
-                YouTube
+                <Upload className="h-4 w-4 mr-1" />
+                Upload
               </Button>
             </div>
+
+            {mediaSource === 'url' ? (
+              <Input
+                id="media"
+                placeholder="URL da imagem, GIF ou YouTube"
+                value={mediaUrl}
+                onChange={(e) => {
+                  setMediaUrl(e.target.value);
+                  detectMediaType(e.target.value);
+                }}
+                className="bg-secondary border-border"
+              />
+            ) : (
+              <div className="space-y-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*,.gif"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="secondary"
+                  className="w-full"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {mediaUrl ? 'Alterar Imagem' : 'Escolher Imagem'}
+                </Button>
+                {mediaUrl && (
+                  <div className="relative rounded-lg overflow-hidden border border-border">
+                    <img 
+                      src={mediaUrl} 
+                      alt="Preview" 
+                      className="w-full h-32 object-cover"
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="destructive"
+                      className="absolute top-2 right-2"
+                      onClick={() => setMediaUrl('')}
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {mediaSource === 'url' && (
+              <div className="flex gap-2 mt-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={mediaType === 'image' ? 'default' : 'secondary'}
+                  onClick={() => setMediaType('image')}
+                >
+                  <Image className="h-4 w-4 mr-1" />
+                  Imagem
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={mediaType === 'gif' ? 'default' : 'secondary'}
+                  onClick={() => setMediaType('gif')}
+                >
+                  <Link className="h-4 w-4 mr-1" />
+                  GIF
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={mediaType === 'youtube' ? 'default' : 'secondary'}
+                  onClick={() => setMediaType('youtube')}
+                >
+                  <Video className="h-4 w-4 mr-1" />
+                  YouTube
+                </Button>
+              </div>
+            )}
           </div>
 
           <div className="flex gap-2 pt-2">
