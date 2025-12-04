@@ -1,12 +1,202 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+import { useState } from 'react';
+import { Workout, WorkoutSession } from '@/types/workout';
+import { useLocalStorage } from '@/hooks/useLocalStorage';
+import WorkoutCard from '@/components/workout/WorkoutCard';
+import WorkoutBuilder from '@/components/workout/WorkoutBuilder';
+import ActiveWorkout from '@/components/workout/ActiveWorkout';
+import WorkoutCalendar from '@/components/workout/WorkoutCalendar';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
+import { Plus, Calendar, Dumbbell, Flame } from 'lucide-react';
+
+type ViewMode = 'list' | 'builder' | 'active' | 'calendar';
 
 const Index = () => {
+  const [workouts, setWorkouts] = useLocalStorage<Workout[]>('gym-workouts', []);
+  const [sessions, setSessions] = useLocalStorage<WorkoutSession[]>('workout-sessions', []);
+  const [viewMode, setViewMode] = useState<ViewMode>('list');
+  const [editingWorkout, setEditingWorkout] = useState<Workout | undefined>();
+  const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
+  const { toast } = useToast();
+
+  const handleSaveWorkout = (workoutData: Omit<Workout, 'id' | 'createdAt'> & { id?: string }) => {
+    if (workoutData.id) {
+      // Update existing
+      setWorkouts(workouts.map((w) =>
+        w.id === workoutData.id
+          ? { ...w, name: workoutData.name, exercises: workoutData.exercises }
+          : w
+      ));
+      toast({
+        title: 'Treino atualizado!',
+        description: `"${workoutData.name}" foi salvo com sucesso.`,
+      });
+    } else {
+      // Create new
+      const newWorkout: Workout = {
+        id: Date.now().toString(),
+        name: workoutData.name,
+        exercises: workoutData.exercises,
+        createdAt: new Date().toISOString(),
+      };
+      setWorkouts([...workouts, newWorkout]);
+      toast({
+        title: 'Treino criado!',
+        description: `"${workoutData.name}" foi adicionado.`,
+      });
+    }
+    setViewMode('list');
+    setEditingWorkout(undefined);
+  };
+
+  const handleDeleteWorkout = (workoutId: string) => {
+    const workout = workouts.find((w) => w.id === workoutId);
+    setWorkouts(workouts.filter((w) => w.id !== workoutId));
+    toast({
+      title: 'Treino removido',
+      description: workout ? `"${workout.name}" foi excluído.` : 'Treino excluído.',
+      variant: 'destructive',
+    });
+  };
+
+  const handleStartWorkout = (workout: Workout) => {
+    setActiveWorkout(workout);
+    setViewMode('active');
+  };
+
+  const handleEditWorkout = (workout: Workout) => {
+    setEditingWorkout(workout);
+    setViewMode('builder');
+  };
+
+  const handleWorkoutComplete = (sessionData: Omit<WorkoutSession, 'id'>) => {
+    const newSession: WorkoutSession = {
+      ...sessionData,
+      id: Date.now().toString(),
+    };
+    setSessions([...sessions, newSession]);
+    setActiveWorkout(null);
+    setViewMode('list');
+    toast({
+      title: '🎉 Treino finalizado!',
+      description: `Parabéns! Você completou "${sessionData.workoutName}".`,
+    });
+  };
+
+  // Active Workout View
+  if (viewMode === 'active' && activeWorkout) {
+    return (
+      <ActiveWorkout
+        workout={activeWorkout}
+        onComplete={handleWorkoutComplete}
+        onCancel={() => {
+          setActiveWorkout(null);
+          setViewMode('list');
+        }}
+      />
+    );
+  }
+
+  // Builder View
+  if (viewMode === 'builder') {
+    return (
+      <WorkoutBuilder
+        workout={editingWorkout}
+        onSave={handleSaveWorkout}
+        onCancel={() => {
+          setViewMode('list');
+          setEditingWorkout(undefined);
+        }}
+      />
+    );
+  }
+
+  // Calendar View
+  if (viewMode === 'calendar') {
+    return (
+      <WorkoutCalendar
+        sessions={sessions}
+        onBack={() => setViewMode('list')}
+      />
+    );
+  }
+
+  // Main List View
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">Welcome to Your Blank App</h1>
-        <p className="text-xl text-muted-foreground">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen bg-background">
+      {/* Header */}
+      <header className="sticky top-0 z-10 bg-background/95 backdrop-blur-sm border-b border-border">
+        <div className="p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl gradient-primary shadow-lg animate-pulse-glow">
+                <Flame className="h-7 w-7 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="font-display text-3xl text-foreground tracking-wider">
+                  GYM TRACKER
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  {workouts.length} treino{workouts.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+            <Button
+              variant="outline"
+              size="icon-lg"
+              onClick={() => setViewMode('calendar')}
+            >
+              <Calendar className="h-5 w-5" />
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main className="p-4 pb-24 space-y-4">
+        {workouts.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center animate-fade-in">
+            <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center mb-6">
+              <Dumbbell className="h-12 w-12 text-muted-foreground" />
+            </div>
+            <h2 className="font-display text-2xl text-foreground mb-2">
+              Comece seu primeiro treino!
+            </h2>
+            <p className="text-muted-foreground mb-6 max-w-xs">
+              Crie seus treinos personalizados e acompanhe seu progresso
+            </p>
+            <Button onClick={() => setViewMode('builder')} size="lg">
+              <Plus className="h-5 w-5 mr-2" />
+              Criar Treino
+            </Button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {workouts.map((workout) => (
+              <WorkoutCard
+                key={workout.id}
+                workout={workout}
+                onStart={handleStartWorkout}
+                onEdit={handleEditWorkout}
+                onDelete={handleDeleteWorkout}
+              />
+            ))}
+          </div>
+        )}
+      </main>
+
+      {/* FAB */}
+      {workouts.length > 0 && (
+        <div className="fixed bottom-6 right-6">
+          <Button
+            onClick={() => setViewMode('builder')}
+            size="icon-lg"
+            className="h-16 w-16 rounded-full shadow-glow animate-pulse-glow"
+          >
+            <Plus className="h-7 w-7" />
+          </Button>
+        </div>
+      )}
     </div>
   );
 };
