@@ -1,7 +1,7 @@
 import { Exercise } from '@/types/workout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { GripVertical, Trash2, Clock, Layers } from 'lucide-react';
+import { Trash2, Clock, Layers } from 'lucide-react';
 
 interface ExerciseItemProps {
   exercise: Exercise;
@@ -15,6 +15,12 @@ const ExerciseItem = ({ exercise, index, onRemove, showMedia = false }: Exercise
     const videoId = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/)?.[1];
     return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
   };
+
+  // Support both new format (imageUrl/youtubeUrl) and legacy format (mediaUrl/mediaType)
+  const imageUrl = exercise.imageUrl || (exercise.mediaType !== 'youtube' ? exercise.mediaUrl : undefined);
+  const youtubeUrl = exercise.youtubeUrl || (exercise.mediaType === 'youtube' ? exercise.mediaUrl : undefined);
+
+  const hasMedia = imageUrl || youtubeUrl;
 
   return (
     <Card className="border-border/30 animate-fade-in">
@@ -39,24 +45,32 @@ const ExerciseItem = ({ exercise, index, onRemove, showMedia = false }: Exercise
               </span>
             </div>
 
-            {showMedia && exercise.mediaUrl && (
-              <div className="mt-3 rounded-lg overflow-hidden bg-secondary">
-                {exercise.mediaType === 'youtube' ? (
-                  <iframe
-                    src={getYouTubeEmbedUrl(exercise.mediaUrl) || ''}
-                    className="w-full aspect-video"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                    allowFullScreen
-                  />
-                ) : (
-                  <img
-                    src={exercise.mediaUrl}
-                    alt={exercise.name}
-                    className="w-full h-32 object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
+            {showMedia && hasMedia && (
+              <div className="mt-3 space-y-3">
+                {/* Image/GIF */}
+                {imageUrl && (
+                  <div className="rounded-lg overflow-hidden bg-secondary">
+                    <img
+                      src={imageUrl}
+                      alt={exercise.name}
+                      className="w-full h-40 object-cover"
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* YouTube Video */}
+                {youtubeUrl && getYouTubeEmbedUrl(youtubeUrl) && (
+                  <div className="rounded-lg overflow-hidden bg-secondary">
+                    <iframe
+                      src={getYouTubeEmbedUrl(youtubeUrl) || ''}
+                      className="w-full aspect-video"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                    />
+                  </div>
                 )}
               </div>
             )}
