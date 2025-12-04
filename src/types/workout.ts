@@ -4,6 +4,9 @@ export interface Exercise {
   sets: number;
   reps: string;
   restTime: number; // in seconds
+  imageUrl?: string; // For image or GIF
+  youtubeUrl?: string; // For YouTube video
+  // Legacy support
   mediaUrl?: string;
   mediaType?: 'image' | 'gif' | 'youtube';
   completed?: boolean;

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, X, Image, Video, Link, Upload } from 'lucide-react';
+import { Plus, X, Image, Video, Upload } from 'lucide-react';
 
 interface ExerciseFormProps {
   onAdd: (exercise: Omit<Exercise, 'id' | 'completed' | 'currentSet'>) => void;
@@ -16,9 +16,9 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
   const [sets, setSets] = useState(3);
   const [reps, setReps] = useState('12');
   const [restTime, setRestTime] = useState(60);
-  const [mediaUrl, setMediaUrl] = useState('');
-  const [mediaType, setMediaType] = useState<'image' | 'gif' | 'youtube'>('image');
-  const [mediaSource, setMediaSource] = useState<'url' | 'file'>('url');
+  const [imageUrl, setImageUrl] = useState('');
+  const [youtubeUrl, setYoutubeUrl] = useState('');
+  const [imageSource, setImageSource] = useState<'url' | 'file'>('url');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -30,19 +30,9 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
       sets,
       reps,
       restTime,
-      mediaUrl: mediaUrl.trim() || undefined,
-      mediaType: mediaUrl.trim() ? mediaType : undefined,
+      imageUrl: imageUrl.trim() || undefined,
+      youtubeUrl: youtubeUrl.trim() || undefined,
     });
-  };
-
-  const detectMediaType = (url: string) => {
-    if (url.includes('youtube.com') || url.includes('youtu.be')) {
-      setMediaType('youtube');
-    } else if (url.endsWith('.gif')) {
-      setMediaType('gif');
-    } else {
-      setMediaType('image');
-    }
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -52,13 +42,7 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
     const reader = new FileReader();
     reader.onloadend = () => {
       const base64 = reader.result as string;
-      setMediaUrl(base64);
-      
-      if (file.type === 'image/gif') {
-        setMediaType('gif');
-      } else {
-        setMediaType('image');
-      }
+      setImageUrl(base64);
     };
     reader.readAsDataURL(file);
   };
@@ -114,30 +98,32 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
             </div>
           </div>
 
+          {/* Imagem/GIF Section */}
           <div className="space-y-2">
-            <Label>Mídia (opcional)</Label>
+            <Label className="flex items-center gap-2">
+              <Image className="h-4 w-4" />
+              Imagem/GIF (opcional)
+            </Label>
             
-            {/* Toggle between URL and File upload */}
             <div className="flex gap-2 mb-2">
               <Button
                 type="button"
                 size="sm"
-                variant={mediaSource === 'url' ? 'default' : 'secondary'}
+                variant={imageSource === 'url' ? 'default' : 'secondary'}
                 onClick={() => {
-                  setMediaSource('url');
-                  setMediaUrl('');
+                  setImageSource('url');
+                  setImageUrl('');
                 }}
               >
-                <Link className="h-4 w-4 mr-1" />
                 URL
               </Button>
               <Button
                 type="button"
                 size="sm"
-                variant={mediaSource === 'file' ? 'default' : 'secondary'}
+                variant={imageSource === 'file' ? 'default' : 'secondary'}
                 onClick={() => {
-                  setMediaSource('file');
-                  setMediaUrl('');
+                  setImageSource('file');
+                  setImageUrl('');
                 }}
               >
                 <Upload className="h-4 w-4 mr-1" />
@@ -145,15 +131,11 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
               </Button>
             </div>
 
-            {mediaSource === 'url' ? (
+            {imageSource === 'url' ? (
               <Input
-                id="media"
-                placeholder="URL da imagem, GIF ou YouTube"
-                value={mediaUrl}
-                onChange={(e) => {
-                  setMediaUrl(e.target.value);
-                  detectMediaType(e.target.value);
-                }}
+                placeholder="URL da imagem ou GIF"
+                value={imageUrl}
+                onChange={(e) => setImageUrl(e.target.value)}
                 className="bg-secondary border-border"
               />
             ) : (
@@ -172,60 +154,43 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <Upload className="h-4 w-4 mr-2" />
-                  {mediaUrl ? 'Alterar Imagem' : 'Escolher Imagem'}
+                  {imageUrl ? 'Alterar Imagem' : 'Escolher Imagem'}
                 </Button>
-                {mediaUrl && (
-                  <div className="relative rounded-lg overflow-hidden border border-border">
-                    <img 
-                      src={mediaUrl} 
-                      alt="Preview" 
-                      className="w-full h-32 object-cover"
-                    />
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="destructive"
-                      className="absolute top-2 right-2"
-                      onClick={() => setMediaUrl('')}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
-                  </div>
-                )}
               </div>
             )}
 
-            {mediaSource === 'url' && (
-              <div className="flex gap-2 mt-2">
+            {imageUrl && (
+              <div className="relative rounded-lg overflow-hidden border border-border">
+                <img 
+                  src={imageUrl} 
+                  alt="Preview" 
+                  className="w-full h-32 object-cover"
+                />
                 <Button
                   type="button"
                   size="sm"
-                  variant={mediaType === 'image' ? 'default' : 'secondary'}
-                  onClick={() => setMediaType('image')}
+                  variant="destructive"
+                  className="absolute top-2 right-2"
+                  onClick={() => setImageUrl('')}
                 >
-                  <Image className="h-4 w-4 mr-1" />
-                  Imagem
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={mediaType === 'gif' ? 'default' : 'secondary'}
-                  onClick={() => setMediaType('gif')}
-                >
-                  <Link className="h-4 w-4 mr-1" />
-                  GIF
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant={mediaType === 'youtube' ? 'default' : 'secondary'}
-                  onClick={() => setMediaType('youtube')}
-                >
-                  <Video className="h-4 w-4 mr-1" />
-                  YouTube
+                  <X className="h-3 w-3" />
                 </Button>
               </div>
             )}
+          </div>
+
+          {/* YouTube Section */}
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <Video className="h-4 w-4" />
+              Vídeo YouTube (opcional)
+            </Label>
+            <Input
+              placeholder="URL do YouTube"
+              value={youtubeUrl}
+              onChange={(e) => setYoutubeUrl(e.target.value)}
+              className="bg-secondary border-border"
+            />
           </div>
 
           <div className="flex gap-2 pt-2">
