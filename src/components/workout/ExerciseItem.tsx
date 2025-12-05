@@ -46,14 +46,14 @@ const ExerciseItem = ({ exercise, index, onRemove, showMedia = false }: Exercise
             </div>
 
             {showMedia && hasMedia && (
-              <div className="mt-3 space-y-3">
+              <div className={`mt-3 grid gap-3 ${imageUrl && youtubeUrl ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {/* Image/GIF */}
                 {imageUrl && (
-                  <div className="rounded-lg overflow-hidden bg-secondary">
+                  <div className="rounded-lg overflow-hidden bg-secondary aspect-video">
                     <img
                       src={imageUrl}
                       alt={exercise.name}
-                      className="w-full h-40 object-cover"
+                      className="w-full h-full object-cover"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
@@ -63,10 +63,10 @@ const ExerciseItem = ({ exercise, index, onRemove, showMedia = false }: Exercise
 
                 {/* YouTube Video */}
                 {youtubeUrl && getYouTubeEmbedUrl(youtubeUrl) && (
-                  <div className="rounded-lg overflow-hidden bg-secondary">
+                  <div className="rounded-lg overflow-hidden bg-secondary aspect-video">
                     <iframe
                       src={getYouTubeEmbedUrl(youtubeUrl) || ''}
-                      className="w-full aspect-video"
+                      className="w-full h-full"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
                     />
