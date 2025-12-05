@@ -1,17 +1,18 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Exercise } from '@/types/workout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { Plus, X, Image, Video, Upload } from 'lucide-react';
+import { Plus, X, Image, Video, Upload, Save } from 'lucide-react';
 
 interface ExerciseFormProps {
   onAdd: (exercise: Omit<Exercise, 'id' | 'completed' | 'currentSet'>) => void;
   onCancel: () => void;
+  editExercise?: Exercise;
 }
 
-const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
+const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
   const [name, setName] = useState('');
   const [sets, setSets] = useState(3);
   const [reps, setReps] = useState('12');
@@ -20,6 +21,21 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [imageSource, setImageSource] = useState<'url' | 'file'>('url');
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (editExercise) {
+      setName(editExercise.name);
+      setSets(editExercise.sets);
+      setReps(editExercise.reps);
+      setRestTime(editExercise.restTime);
+      setImageUrl(editExercise.imageUrl || '');
+      setYoutubeUrl(editExercise.youtubeUrl || '');
+      // Detect if it's a base64 image (file upload)
+      if (editExercise.imageUrl?.startsWith('data:')) {
+        setImageSource('file');
+      }
+    }
+  }, [editExercise]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,6 +62,8 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
     };
     reader.readAsDataURL(file);
   };
+
+  const isEditing = !!editExercise;
 
   return (
     <Card className="border-primary/30 animate-scale-in">
@@ -195,8 +213,17 @@ const ExerciseForm = ({ onAdd, onCancel }: ExerciseFormProps) => {
 
           <div className="flex gap-2 pt-2">
             <Button type="submit" className="flex-1">
-              <Plus className="h-4 w-4" />
-              Adicionar
+              {isEditing ? (
+                <>
+                  <Save className="h-4 w-4 mr-1" />
+                  Salvar
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4" />
+                  Adicionar
+                </>
+              )}
             </Button>
             <Button type="button" variant="ghost" onClick={onCancel}>
               <X className="h-4 w-4" />

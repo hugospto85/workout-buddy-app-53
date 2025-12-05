@@ -1,16 +1,17 @@
 import { Exercise } from '@/types/workout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Trash2, Clock, Layers } from 'lucide-react';
+import { Trash2, Clock, Layers, Pencil } from 'lucide-react';
 
 interface ExerciseItemProps {
   exercise: Exercise;
   index: number;
   onRemove: (id: string) => void;
+  onEdit?: (exercise: Exercise) => void;
   showMedia?: boolean;
 }
 
-const ExerciseItem = ({ exercise, index, onRemove, showMedia = false }: ExerciseItemProps) => {
+const ExerciseItem = ({ exercise, index, onRemove, onEdit, showMedia = false }: ExerciseItemProps) => {
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = url.match(/(?:youtube\.com\/(?:[^/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?/\s]{11})/)?.[1];
     return videoId ? `https://www.youtube.com/embed/${videoId}` : null;
@@ -21,6 +22,7 @@ const ExerciseItem = ({ exercise, index, onRemove, showMedia = false }: Exercise
   const youtubeUrl = exercise.youtubeUrl || (exercise.mediaType === 'youtube' ? exercise.mediaUrl : undefined);
 
   const hasMedia = imageUrl || youtubeUrl;
+  const hasBothMedia = imageUrl && youtubeUrl;
 
   return (
     <Card className="border-border/30 animate-fade-in">
@@ -46,14 +48,14 @@ const ExerciseItem = ({ exercise, index, onRemove, showMedia = false }: Exercise
             </div>
 
             {showMedia && hasMedia && (
-              <div className={`mt-3 grid gap-3 ${imageUrl && youtubeUrl ? 'grid-cols-2' : 'grid-cols-1'}`}>
+              <div className={`mt-3 grid gap-3 ${hasBothMedia ? 'grid-cols-2' : 'grid-cols-1'}`}>
                 {/* Image/GIF */}
                 {imageUrl && (
-                  <div className="rounded-lg overflow-hidden bg-secondary aspect-video">
+                  <div className="rounded-lg overflow-hidden bg-secondary aspect-video flex items-center justify-center">
                     <img
                       src={imageUrl}
                       alt={exercise.name}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full object-contain"
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.display = 'none';
                       }}
@@ -76,14 +78,26 @@ const ExerciseItem = ({ exercise, index, onRemove, showMedia = false }: Exercise
             )}
           </div>
 
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => onRemove(exercise.id)}
-            className="text-muted-foreground hover:text-destructive shrink-0"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex flex-col gap-1 shrink-0">
+            {onEdit && (
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                onClick={() => onEdit(exercise)}
+                className="text-muted-foreground hover:text-primary"
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => onRemove(exercise.id)}
+              className="text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

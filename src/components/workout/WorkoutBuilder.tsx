@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Workout, Exercise } from '@/types/workout';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import ExerciseForm from './ExerciseForm';
 import ExerciseItem from './ExerciseItem';
@@ -18,18 +17,40 @@ const WorkoutBuilder = ({ workout, onSave, onCancel }: WorkoutBuilderProps) => {
   const [name, setName] = useState(workout?.name || '');
   const [exercises, setExercises] = useState<Exercise[]>(workout?.exercises || []);
   const [showExerciseForm, setShowExerciseForm] = useState(false);
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
 
   const handleAddExercise = (exerciseData: Omit<Exercise, 'id' | 'completed' | 'currentSet'>) => {
-    const newExercise: Exercise = {
-      ...exerciseData,
-      id: Date.now().toString(),
-    };
-    setExercises([...exercises, newExercise]);
+    if (editingExercise) {
+      // Editing existing exercise
+      setExercises(exercises.map(ex => 
+        ex.id === editingExercise.id 
+          ? { ...ex, ...exerciseData }
+          : ex
+      ));
+      setEditingExercise(null);
+    } else {
+      // Adding new exercise
+      const newExercise: Exercise = {
+        ...exerciseData,
+        id: Date.now().toString(),
+      };
+      setExercises([...exercises, newExercise]);
+    }
     setShowExerciseForm(false);
   };
 
   const handleRemoveExercise = (id: string) => {
     setExercises(exercises.filter((ex) => ex.id !== id));
+  };
+
+  const handleEditExercise = (exercise: Exercise) => {
+    setEditingExercise(exercise);
+    setShowExerciseForm(true);
+  };
+
+  const handleCancelForm = () => {
+    setShowExerciseForm(false);
+    setEditingExercise(null);
   };
 
   const handleSave = () => {
@@ -106,6 +127,7 @@ const WorkoutBuilder = ({ workout, onSave, onCancel }: WorkoutBuilderProps) => {
               exercise={exercise}
               index={index}
               onRemove={handleRemoveExercise}
+              onEdit={handleEditExercise}
               showMedia
             />
           ))}
@@ -113,7 +135,8 @@ const WorkoutBuilder = ({ workout, onSave, onCancel }: WorkoutBuilderProps) => {
           {showExerciseForm ? (
             <ExerciseForm
               onAdd={handleAddExercise}
-              onCancel={() => setShowExerciseForm(false)}
+              onCancel={handleCancelForm}
+              editExercise={editingExercise || undefined}
             />
           ) : exercises.length > 0 && (
             <Button
