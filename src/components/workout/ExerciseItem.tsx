@@ -38,9 +38,10 @@ const ExerciseItem = ({ exercise, index, onRemove, onEdit, showMedia = false }: 
               <span className="flex items-center gap-1">
                 <Layers className="h-4 w-4" />
                 {exercise.sets} séries
+                {exercise.eachSide && <span className="text-xs text-primary">(cada lado)</span>}
               </span>
               <span>×</span>
-              <span>{exercise.reps} reps</span>
+              <span>{exercise.reps} {exercise.repsType === 'tempo' ? 's' : 'reps'}</span>
               <span className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
                 {exercise.restTime}s

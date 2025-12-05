@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Plus, X, Image, Video, Upload, Save } from 'lucide-react';
 
 interface ExerciseFormProps {
@@ -15,7 +17,9 @@ interface ExerciseFormProps {
 const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
   const [name, setName] = useState('');
   const [sets, setSets] = useState(3);
+  const [eachSide, setEachSide] = useState(false);
   const [reps, setReps] = useState('12');
+  const [repsType, setRepsType] = useState<'reps' | 'tempo'>('reps');
   const [restTime, setRestTime] = useState(60);
   const [imageUrl, setImageUrl] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -26,7 +30,9 @@ const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
     if (editExercise) {
       setName(editExercise.name);
       setSets(editExercise.sets);
+      setEachSide(editExercise.eachSide || false);
       setReps(editExercise.reps);
+      setRepsType(editExercise.repsType || 'reps');
       setRestTime(editExercise.restTime);
       setImageUrl(editExercise.imageUrl || '');
       setYoutubeUrl(editExercise.youtubeUrl || '');
@@ -44,7 +50,9 @@ const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
     onAdd({
       name: name.trim(),
       sets,
+      eachSide,
       reps,
+      repsType,
       restTime,
       imageUrl: imageUrl.trim() || undefined,
       youtubeUrl: youtubeUrl.trim() || undefined,
@@ -91,12 +99,32 @@ const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
                 onChange={(e) => setSets(parseInt(e.target.value) || 1)}
                 className="bg-secondary border-border"
               />
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="eachSide"
+                  checked={eachSide}
+                  onCheckedChange={(checked) => setEachSide(checked === true)}
+                />
+                <Label htmlFor="eachSide" className="text-xs text-muted-foreground cursor-pointer">
+                  De cada lado
+                </Label>
+              </div>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="reps">Reps</Label>
+              <Select value={repsType} onValueChange={(value: 'reps' | 'tempo') => setRepsType(value)}>
+                <SelectTrigger className="h-auto p-0 border-0 bg-transparent">
+                  <Label className="cursor-pointer">
+                    <SelectValue />
+                  </Label>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="reps">Reps</SelectItem>
+                  <SelectItem value="tempo">Tempo (s)</SelectItem>
+                </SelectContent>
+              </Select>
               <Input
                 id="reps"
-                placeholder="12"
+                placeholder={repsType === 'reps' ? '12' : '30'}
                 value={reps}
                 onChange={(e) => setReps(e.target.value)}
                 className="bg-secondary border-border"

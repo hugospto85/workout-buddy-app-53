@@ -3,6 +3,8 @@ export interface Exercise {
   name: string;
   sets: number;
   reps: string;
+  repsType: 'reps' | 'tempo'; // reps or time-based
+  eachSide?: boolean; // "De cada lado" marker
   restTime: number; // in seconds
   imageUrl?: string; // For image or GIF
   youtubeUrl?: string; // For YouTube video
