@@ -5,7 +5,8 @@ export interface Exercise {
   reps: string;
   repsType: 'reps' | 'tempo'; // reps or time-based
   eachSide?: boolean; // "De cada lado" marker
-  restTime: number; // in seconds
+  restType?: 'custom' | 'none' | 'side-change'; // rest type option
+  restTime: number; // in seconds (-1 for side-change, 0 for none)
   imageUrl?: string; // For image or GIF
   youtubeUrl?: string; // For YouTube video
   // Legacy support

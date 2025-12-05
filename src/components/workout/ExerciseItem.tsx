@@ -44,7 +44,11 @@ const ExerciseItem = ({ exercise, index, onRemove, onEdit, showMedia = false }: 
               <span>{exercise.reps} {exercise.repsType === 'tempo' ? 's' : 'reps'}</span>
               <span className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
-                {exercise.restTime}s
+                {exercise.restType === 'none' || exercise.restTime === 0 
+                  ? 'Sem descanso' 
+                  : exercise.restType === 'side-change' || exercise.restTime === -1
+                    ? 'Trocar lado'
+                    : `${exercise.restTime}s`}
               </span>
             </div>
 

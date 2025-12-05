@@ -20,6 +20,7 @@ const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
   const [eachSide, setEachSide] = useState(false);
   const [reps, setReps] = useState('12');
   const [repsType, setRepsType] = useState<'reps' | 'tempo'>('reps');
+  const [restType, setRestType] = useState<'custom' | 'none' | 'side-change'>('custom');
   const [restTime, setRestTime] = useState(60);
   const [imageUrl, setImageUrl] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -33,6 +34,7 @@ const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
       setEachSide(editExercise.eachSide || false);
       setReps(editExercise.reps);
       setRepsType(editExercise.repsType || 'reps');
+      setRestType(editExercise.restType || 'custom');
       setRestTime(editExercise.restTime);
       setImageUrl(editExercise.imageUrl || '');
       setYoutubeUrl(editExercise.youtubeUrl || '');
@@ -53,7 +55,8 @@ const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
       eachSide,
       reps,
       repsType,
-      restTime,
+      restType,
+      restTime: restType === 'none' ? 0 : restType === 'side-change' ? -1 : restTime,
       imageUrl: imageUrl.trim() || undefined,
       youtubeUrl: youtubeUrl.trim() || undefined,
     });
@@ -131,16 +134,29 @@ const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="rest">Descanso (s)</Label>
-              <Input
-                id="rest"
-                type="number"
-                min={0}
-                step={5}
-                value={restTime}
-                onChange={(e) => setRestTime(parseInt(e.target.value) || 0)}
-                className="bg-secondary border-border"
-              />
+              <Label>Descanso</Label>
+              <Select value={restType} onValueChange={(value: 'custom' | 'none' | 'side-change') => setRestType(value)}>
+                <SelectTrigger className="bg-secondary border-border">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="custom">Personalizado</SelectItem>
+                  <SelectItem value="none">Sem descanso</SelectItem>
+                  <SelectItem value="side-change">Apenas trocar lado</SelectItem>
+                </SelectContent>
+              </Select>
+              {restType === 'custom' && (
+                <Input
+                  id="rest"
+                  type="number"
+                  min={0}
+                  step={5}
+                  placeholder="60"
+                  value={restTime}
+                  onChange={(e) => setRestTime(parseInt(e.target.value) || 0)}
+                  className="bg-secondary border-border"
+                />
+              )}
             </div>
           </div>
 
