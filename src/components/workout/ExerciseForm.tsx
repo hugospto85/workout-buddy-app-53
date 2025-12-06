@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, X, Image, Video, Upload, Save } from 'lucide-react';
+import { Plus, X, Image, Video, Upload, Save, Search } from 'lucide-react';
+import ExerciseSearch from './ExerciseSearch';
+import { ExerciseData } from '@/data/exerciseDatabase';
 
 interface ExerciseFormProps {
   onAdd: (exercise: Omit<Exercise, 'id' | 'completed' | 'currentSet'>) => void;
@@ -25,8 +27,20 @@ const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
   const [imageUrl, setImageUrl] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [imageSource, setImageSource] = useState<'url' | 'file'>('url');
+  const [showSearch, setShowSearch] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const handleSelectFromDatabase = (exercise: ExerciseData) => {
+    setName(exercise.name);
+    if (exercise.imageUrl) {
+      setImageUrl(exercise.imageUrl);
+      setImageSource('url');
+    }
+    if (exercise.videoUrl) {
+      setYoutubeUrl(exercise.videoUrl);
+    }
+    setShowSearch(false);
+  };
   useEffect(() => {
     if (editExercise) {
       setName(editExercise.name);
@@ -77,19 +91,39 @@ const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
   const isEditing = !!editExercise;
 
   return (
-    <Card className="border-primary/30 animate-scale-in">
-      <CardContent className="pt-5">
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Nome do Exercício</Label>
-            <Input
-              id="name"
-              placeholder="Ex: Supino Reto"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="bg-secondary border-border"
-            />
-          </div>
+    <>
+      {showSearch && (
+        <ExerciseSearch
+          onSelect={handleSelectFromDatabase}
+          onClose={() => setShowSearch(false)}
+        />
+      )}
+      
+      <Card className="border-primary/30 animate-scale-in">
+        <CardContent className="pt-5">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="name">Nome do Exercício</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowSearch(true)}
+                  className="h-7 text-xs gap-1"
+                >
+                  <Search className="h-3 w-3" />
+                  Buscar na base
+                </Button>
+              </div>
+              <Input
+                id="name"
+                placeholder="Ex: Supino Reto"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="bg-secondary border-border"
+              />
+            </div>
 
           <div className="grid grid-cols-3 gap-3">
             <div className="space-y-2">
@@ -276,6 +310,7 @@ const ExerciseForm = ({ onAdd, onCancel, editExercise }: ExerciseFormProps) => {
         </form>
       </CardContent>
     </Card>
+    </>
   );
 };
 
