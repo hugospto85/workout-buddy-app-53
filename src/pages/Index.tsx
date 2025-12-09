@@ -134,7 +134,7 @@ const Index = () => {
               </div>
               <div>
                 <h1 className="font-display text-3xl text-foreground tracking-wider">
-                  GYM TRACKER
+                  H&B FITNESS
                 </h1>
                 <p className="text-sm text-muted-foreground">
                   {workouts.length} treino{workouts.length !== 1 ? 's' : ''}
