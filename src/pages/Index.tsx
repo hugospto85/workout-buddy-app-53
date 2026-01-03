@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Workout, WorkoutSession } from '@/types/workout';
 import { useLocalStorage } from '@/hooks/useLocalStorage';
 import WorkoutCard from '@/components/workout/WorkoutCard';
@@ -7,7 +8,9 @@ import ActiveWorkout from '@/components/workout/ActiveWorkout';
 import WorkoutCalendar from '@/components/workout/WorkoutCalendar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Calendar, Dumbbell, Flame } from 'lucide-react';
+import { Plus, Calendar, Dumbbell, Flame, LogIn, LogOut, User } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 type ViewMode = 'list' | 'builder' | 'active' | 'calendar';
 
@@ -17,7 +20,32 @@ const Index = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('list');
   const [editingWorkout, setEditingWorkout] = useState<Workout | undefined>();
   const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    toast({
+      title: "Até logo!",
+      description: "Você saiu da sua conta.",
+    });
+  };
 
   const handleSaveWorkout = (workoutData: Omit<Workout, 'id' | 'createdAt'> & { id?: string }) => {
     if (workoutData.id) {
@@ -141,13 +169,42 @@ const Index = () => {
                 </p>
               </div>
             </div>
-            <Button
-              variant="outline"
-              size="icon-lg"
-              onClick={() => setViewMode('calendar')}
-            >
-              <Calendar className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              {user ? (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
+                    <User className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-sm text-foreground max-w-[100px] truncate">
+                      {user.user_metadata?.full_name || user.email?.split('@')[0]}
+                    </span>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="icon-lg"
+                    onClick={handleLogout}
+                    title="Sair"
+                  >
+                    <LogOut className="h-5 w-5" />
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="icon-lg"
+                  onClick={() => navigate('/auth')}
+                  title="Entrar"
+                >
+                  <LogIn className="h-5 w-5" />
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="icon-lg"
+                onClick={() => setViewMode('calendar')}
+              >
+                <Calendar className="h-5 w-5" />
+              </Button>
+            </div>
           </div>
         </div>
       </header>
