@@ -8,8 +8,9 @@ import ActiveWorkout from '@/components/workout/ActiveWorkout';
 import WorkoutCalendar from '@/components/workout/WorkoutCalendar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Calendar, Dumbbell, Flame, LogIn, LogOut, User } from 'lucide-react';
+import { Plus, Calendar, Dumbbell, Flame, LogIn, LogOut, User, Cloud, CloudOff, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useCloudSync } from '@/hooks/useCloudSync';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 type ViewMode = 'list' | 'builder' | 'active' | 'calendar';
@@ -22,8 +23,21 @@ const Index = () => {
   const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const { sync, status: syncStatus, lastSync } = useCloudSync();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -45,6 +59,22 @@ const Index = () => {
       title: "Até logo!",
       description: "Você saiu da sua conta.",
     });
+  };
+
+  const handleSync = async () => {
+    if (!isOnline) {
+      toast({
+        title: 'Sem conexão',
+        description: 'Você está offline. Conecte-se à internet para sincronizar.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    await sync(workouts, sessions, setWorkouts, setSessions);
   };
 
   const handleSaveWorkout = (workoutData: Omit<Workout, 'id' | 'createdAt'> & { id?: string }) => {
