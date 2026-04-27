@@ -194,20 +194,47 @@ const Index = () => {
                 <h1 className="font-display text-3xl text-foreground tracking-wider">
                   H&B FITNESS
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  {workouts.length} treino{workouts.length !== 1 ? 's' : ''}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    {workouts.length} treino{workouts.length !== 1 ? 's' : ''}
+                  </p>
+                  <span className="text-muted-foreground">•</span>
+                  {isOnline ? (
+                    <span className="flex items-center gap-1 text-xs text-primary">
+                      <Wifi className="h-3 w-3" /> Online
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-destructive">
+                      <WifiOff className="h-3 w-3" /> Offline
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {user ? (
                 <>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
+                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm text-foreground max-w-[100px] truncate">
                       {user.user_metadata?.full_name || user.email?.split('@')[0]}
                     </span>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="icon-lg"
+                    onClick={handleSync}
+                    disabled={syncStatus === 'syncing' || !isOnline}
+                    title={lastSync ? `Última sync: ${new Date(lastSync).toLocaleString('pt-BR')}` : 'Sincronizar com a nuvem'}
+                  >
+                    {syncStatus === 'syncing' ? (
+                      <RefreshCw className="h-5 w-5 animate-spin" />
+                    ) : isOnline ? (
+                      <Cloud className="h-5 w-5" />
+                    ) : (
+                      <CloudOff className="h-5 w-5" />
+                    )}
+                  </Button>
                   <Button
                     variant="outline"
                     size="icon-lg"
@@ -222,7 +249,7 @@ const Index = () => {
                   variant="outline"
                   size="icon-lg"
                   onClick={() => navigate('/auth')}
-                  title="Entrar"
+                  title="Entrar para sincronizar"
                 >
                   <LogIn className="h-5 w-5" />
                 </Button>
