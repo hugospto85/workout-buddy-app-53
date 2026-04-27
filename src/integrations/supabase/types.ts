@@ -14,7 +14,126 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_preferences: {
+        Row: {
+          id: string
+          preferences: Json
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          preferences?: Json
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          preferences?: Json
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      workout_sessions: {
+        Row: {
+          created_at: string
+          date: string
+          exercises_completed: number
+          id: string
+          local_id: string
+          total_exercises: number
+          total_time: number
+          user_id: string
+          workout_id: string
+          workout_name: string
+        }
+        Insert: {
+          created_at?: string
+          date: string
+          exercises_completed?: number
+          id?: string
+          local_id: string
+          total_exercises?: number
+          total_time?: number
+          user_id: string
+          workout_id: string
+          workout_name: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          exercises_completed?: number
+          id?: string
+          local_id?: string
+          total_exercises?: number
+          total_time?: number
+          user_id?: string
+          workout_id?: string
+          workout_name?: string
+        }
+        Relationships: []
+      }
+      workouts: {
+        Row: {
+          color: string | null
+          created_at: string
+          exercises: Json
+          id: string
+          local_id: string
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          exercises?: Json
+          id?: string
+          local_id: string
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          exercises?: Json
+          id?: string
+          local_id?: string
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

@@ -8,8 +8,9 @@ import ActiveWorkout from '@/components/workout/ActiveWorkout';
 import WorkoutCalendar from '@/components/workout/WorkoutCalendar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Calendar, Dumbbell, Flame, LogIn, LogOut, User } from 'lucide-react';
+import { Plus, Calendar, Dumbbell, Flame, LogIn, LogOut, User, Cloud, CloudOff, RefreshCw, Wifi, WifiOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
+import { useCloudSync } from '@/hooks/useCloudSync';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 type ViewMode = 'list' | 'builder' | 'active' | 'calendar';
@@ -22,8 +23,21 @@ const Index = () => {
   const [activeWorkout, setActiveWorkout] = useState<Workout | null>(null);
   const [user, setUser] = useState<SupabaseUser | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const { sync, status: syncStatus, lastSync } = useCloudSync();
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
@@ -45,6 +59,22 @@ const Index = () => {
       title: "Até logo!",
       description: "Você saiu da sua conta.",
     });
+  };
+
+  const handleSync = async () => {
+    if (!isOnline) {
+      toast({
+        title: 'Sem conexão',
+        description: 'Você está offline. Conecte-se à internet para sincronizar.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    if (!user) {
+      navigate('/auth');
+      return;
+    }
+    await sync(workouts, sessions, setWorkouts, setSessions);
   };
 
   const handleSaveWorkout = (workoutData: Omit<Workout, 'id' | 'createdAt'> & { id?: string }) => {
@@ -164,20 +194,47 @@ const Index = () => {
                 <h1 className="font-display text-3xl text-foreground tracking-wider">
                   H&B FITNESS
                 </h1>
-                <p className="text-sm text-muted-foreground">
-                  {workouts.length} treino{workouts.length !== 1 ? 's' : ''}
-                </p>
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    {workouts.length} treino{workouts.length !== 1 ? 's' : ''}
+                  </p>
+                  <span className="text-muted-foreground">•</span>
+                  {isOnline ? (
+                    <span className="flex items-center gap-1 text-xs text-primary">
+                      <Wifi className="h-3 w-3" /> Online
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs text-destructive">
+                      <WifiOff className="h-3 w-3" /> Offline
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
             <div className="flex items-center gap-2">
               {user ? (
                 <>
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
+                  <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 bg-muted rounded-lg">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <span className="text-sm text-foreground max-w-[100px] truncate">
                       {user.user_metadata?.full_name || user.email?.split('@')[0]}
                     </span>
                   </div>
+                  <Button
+                    variant="outline"
+                    size="icon-lg"
+                    onClick={handleSync}
+                    disabled={syncStatus === 'syncing' || !isOnline}
+                    title={lastSync ? `Última sync: ${new Date(lastSync).toLocaleString('pt-BR')}` : 'Sincronizar com a nuvem'}
+                  >
+                    {syncStatus === 'syncing' ? (
+                      <RefreshCw className="h-5 w-5 animate-spin" />
+                    ) : isOnline ? (
+                      <Cloud className="h-5 w-5" />
+                    ) : (
+                      <CloudOff className="h-5 w-5" />
+                    )}
+                  </Button>
                   <Button
                     variant="outline"
                     size="icon-lg"
@@ -192,7 +249,7 @@ const Index = () => {
                   variant="outline"
                   size="icon-lg"
                   onClick={() => navigate('/auth')}
-                  title="Entrar"
+                  title="Entrar para sincronizar"
                 >
                   <LogIn className="h-5 w-5" />
                 </Button>

@@ -12,7 +12,7 @@ interface UseTimerReturn {
 export function useTimer(initialTime: number = 0, countdown: boolean = false, onComplete?: () => void): UseTimerReturn {
   const [seconds, setSeconds] = useState(initialTime);
   const [isRunning, setIsRunning] = useState(false);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onCompleteRef = useRef(onComplete);
 
   useEffect(() => {
