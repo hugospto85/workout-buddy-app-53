@@ -8,9 +8,11 @@ import ActiveWorkout from '@/components/workout/ActiveWorkout';
 import WorkoutCalendar from '@/components/workout/WorkoutCalendar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Calendar, Dumbbell, Flame, LogIn, LogOut, User, Cloud, CloudOff, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Plus, Calendar, Dumbbell, Flame, LogIn, LogOut, User, Cloud, CloudOff, RefreshCw, Wifi, WifiOff, Download, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCloudSync } from '@/hooks/useCloudSync';
+import { downloadWorkouts, parseWorkoutFile } from '@/lib/workoutShare';
+import { useRef } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 type ViewMode = 'list' | 'builder' | 'active' | 'calendar';
@@ -27,6 +29,38 @@ const Index = () => {
   const { sync, status: syncStatus, lastSync } = useCloudSync();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExportAll = () => {
+    if (workouts.length === 0) {
+      toast({ title: 'Nenhum treino para exportar', variant: 'destructive' });
+      return;
+    }
+    downloadWorkouts(workouts, 'meus_treinos');
+    toast({ title: 'Treinos exportados!', description: `${workouts.length} treino(s) salvos em arquivo.` });
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const imported = parseWorkoutFile(text);
+      if (imported.length === 0) throw new Error('Nenhum treino encontrado');
+      setWorkouts([...workouts, ...imported]);
+      toast({
+        title: 'Treinos importados!',
+        description: `${imported.length} treino(s) adicionados.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Falha ao importar',
+        description: err?.message || 'Verifique se o arquivo é válido.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
@@ -257,10 +291,33 @@ const Index = () => {
               <Button
                 variant="outline"
                 size="icon-lg"
+                onClick={() => fileInputRef.current?.click()}
+                title="Importar treinos de arquivo"
+              >
+                <Upload className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-lg"
+                onClick={handleExportAll}
+                title="Exportar todos os treinos"
+              >
+                <Download className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-lg"
                 onClick={() => setViewMode('calendar')}
               >
                 <Calendar className="h-5 w-5" />
               </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={handleImportFile}
+              />
             </div>
           </div>
         </div>

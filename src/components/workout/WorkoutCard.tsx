@@ -1,7 +1,9 @@
 import { Workout } from '@/types/workout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, Edit, Trash2, Dumbbell } from 'lucide-react';
+import { Play, Edit, Trash2, Dumbbell, Share2 } from 'lucide-react';
+import { shareWorkout } from '@/lib/workoutShare';
+import { useToast } from '@/hooks/use-toast';
 
 interface WorkoutCardProps {
   workout: Workout;
@@ -11,6 +13,22 @@ interface WorkoutCardProps {
 }
 
 const WorkoutCard = ({ workout, onStart, onEdit, onDelete }: WorkoutCardProps) => {
+  const { toast } = useToast();
+
+  const handleShare = async () => {
+    try {
+      const result = await shareWorkout(workout);
+      toast({
+        title: result === 'shared' ? 'Treino compartilhado!' : 'Arquivo exportado!',
+        description: result === 'shared'
+          ? 'Envie para quem quiser pelo app escolhido.'
+          : `"${workout.name}.hbfit.json" foi baixado. Envie para outra pessoa importar.`,
+      });
+    } catch {
+      toast({ title: 'Erro ao compartilhar', variant: 'destructive' });
+    }
+  };
+
   return (
     <Card className="group hover:border-primary/30 animate-fade-in">
       <CardHeader className="pb-3">
@@ -59,6 +77,14 @@ const WorkoutCard = ({ workout, onStart, onEdit, onDelete }: WorkoutCardProps) =
             onClick={() => onEdit(workout)}
           >
             <Edit className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon-lg"
+            onClick={handleShare}
+            title="Compartilhar / exportar"
+          >
+            <Share2 className="h-5 w-5" />
           </Button>
           <Button
             variant="ghost"
