@@ -291,10 +291,33 @@ const Index = () => {
               <Button
                 variant="outline"
                 size="icon-lg"
+                onClick={() => fileInputRef.current?.click()}
+                title="Importar treinos de arquivo"
+              >
+                <Upload className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-lg"
+                onClick={handleExportAll}
+                title="Exportar todos os treinos"
+              >
+                <Download className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-lg"
                 onClick={() => setViewMode('calendar')}
               >
                 <Calendar className="h-5 w-5" />
               </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".json,application/json"
+                className="hidden"
+                onChange={handleImportFile}
+              />
             </div>
           </div>
         </div>
