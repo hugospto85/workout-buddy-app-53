@@ -29,6 +29,38 @@ const Index = () => {
   const { sync, status: syncStatus, lastSync } = useCloudSync();
   const { toast } = useToast();
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleExportAll = () => {
+    if (workouts.length === 0) {
+      toast({ title: 'Nenhum treino para exportar', variant: 'destructive' });
+      return;
+    }
+    downloadWorkouts(workouts, 'meus_treinos');
+    toast({ title: 'Treinos exportados!', description: `${workouts.length} treino(s) salvos em arquivo.` });
+  };
+
+  const handleImportFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const imported = parseWorkoutFile(text);
+      if (imported.length === 0) throw new Error('Nenhum treino encontrado');
+      setWorkouts([...workouts, ...imported]);
+      toast({
+        title: 'Treinos importados!',
+        description: `${imported.length} treino(s) adicionados.`,
+      });
+    } catch (err: any) {
+      toast({
+        title: 'Falha ao importar',
+        description: err?.message || 'Verifique se o arquivo é válido.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   useEffect(() => {
     const handleOnline = () => setIsOnline(true);
