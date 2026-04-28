@@ -8,9 +8,11 @@ import ActiveWorkout from '@/components/workout/ActiveWorkout';
 import WorkoutCalendar from '@/components/workout/WorkoutCalendar';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Calendar, Dumbbell, Flame, LogIn, LogOut, User, Cloud, CloudOff, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { Plus, Calendar, Dumbbell, Flame, LogIn, LogOut, User, Cloud, CloudOff, RefreshCw, Wifi, WifiOff, Download, Upload } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCloudSync } from '@/hooks/useCloudSync';
+import { downloadWorkouts, parseWorkoutFile } from '@/lib/workoutShare';
+import { useRef } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 type ViewMode = 'list' | 'builder' | 'active' | 'calendar';
