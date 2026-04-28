@@ -79,6 +79,14 @@ const WorkoutCard = ({ workout, onStart, onEdit, onDelete }: WorkoutCardProps) =
             <Edit className="h-5 w-5" />
           </Button>
           <Button
+            variant="outline"
+            size="icon-lg"
+            onClick={handleShare}
+            title="Compartilhar / exportar"
+          >
+            <Share2 className="h-5 w-5" />
+          </Button>
+          <Button
             variant="ghost"
             size="icon-lg"
             onClick={() => onDelete(workout.id)}
