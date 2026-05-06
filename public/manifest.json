@@ -3,7 +3,7 @@
   "short_name": "H&B Fitness",
   "description": "Acompanhe seus treinos de musculação, controle séries, repetições e tempo de descanso.",
   "start_url": "/",
-  "id": "/",
+  "id": "/?source=pwa&app=hb-fitness",
   "scope": "/",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
