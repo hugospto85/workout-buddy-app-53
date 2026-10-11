@@ -12,3 +12,5 @@ Allow: /
 
 User-agent: *
 Allow: /
+
+Sitemap: https://workout-buddy-app-53.lovable.app/sitemap.xml

@@ -1,3 +1,4 @@
+import { Helmet } from "react-helmet-async";
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -133,6 +134,14 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
+      <Helmet>
+        <title>Entrar na sua conta - H&B Fitness</title>
+        <meta name="description" content="Entre no H&B Fitness com Google, Facebook, X ou e-mail para sincronizar seus treinos entre dispositivos." />
+        <meta property="og:title" content="Entrar na sua conta - H&B Fitness" />
+        <meta property="og:description" content="Entre no H&B Fitness com Google, Facebook, X ou e-mail para sincronizar seus treinos entre dispositivos." />
+        <meta name="twitter:title" content="Entrar na sua conta - H&B Fitness" />
+        <meta name="twitter:description" content="Entre no H&B Fitness com Google, Facebook, X ou e-mail para sincronizar seus treinos entre dispositivos." />
+      </Helmet>
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">

@@ -1,8 +1,9 @@
 import { createRoot } from "react-dom/client";
 import App from "./App.tsx";
+import { HelmetProvider } from "react-helmet-async";
 import "./index.css";
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<HelmetProvider><App /></HelmetProvider>);
 
 // Register Service Worker (production only, skip in iframe/preview)
 if ("serviceWorker" in navigator) {
